@@ -1,0 +1,35 @@
+name: Model Training CICD
+
+on:
+  push:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: iterative/setup-cml@v2
+
+      - name: Train Model
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+          python train_model.py
+
+          echo "# Model Report" > report.md
+          cat scores.txt >> report.md
+
+          echo "" >> report.md
+          echo "![](./ConfusionMatrix.png)" >> report.md
+          echo "![](./FeatureImportance.png)" >> report.md
+
+          cml comment create report.md
